@@ -3,24 +3,27 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SCRAPER_OOH - Comercial PRO</title>
+<title>OOH + TRICOT PRO</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
 <style>
 body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
 .app{display:flex;height:100vh}
 .sidebar{width:420px;background:#0b1324;padding:15px;overflow:auto}
 .panel{margin-bottom:18px}
-input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;background:#091a36;color:#fff;border:none}
+
+input,select,button{
+width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
+background:#091a36;color:#fff;border:none
+}
 
 #map{height:100%}
 .map-wrap{flex:1}
 
 .stat{background:#081a3b;padding:10px;border-radius:10px;margin-bottom:8px}
-.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px}
+.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px;font-weight:bold}
 
 .ranking-item{background:#0a1b3a;padding:10px;border-radius:10px;margin-bottom:6px}
 
@@ -51,6 +54,14 @@ input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10p
 <h3>Análisis Comercial</h3>
 <div class="kpi">Tiendas Tricot: <b id="totalTricot">0</b></div>
 <div class="kpi">% Soportes cerca: <b id="ratio">0%</b></div>
+<div class="kpi">Soportes cercanos: <b id="soportesCercanos">0</b></div>
+<div class="kpi">Sin cobertura: <b id="soportesLejanos">0</b></div>
+</div>
+
+<!-- CARGA ARCHIVO -->
+<div class="panel">
+<h3>Cargar datos</h3>
+<input type="file" id="fileInput" accept=".json">
 </div>
 
 <!-- FILTROS -->
@@ -93,14 +104,16 @@ input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10p
 
 <script>
 
+// MAPA
 const map=L.map('map').setView([-33.45,-70.66],11);
-
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
+// PANES
 map.createPane('hex'); map.getPane('hex').style.zIndex=400;
 map.createPane('points'); map.getPane('points').style.zIndex=650;
-map.createPane('tricot'); map.getPane('tricot').style.zIndex=660;
+map.createPane('tricot'); map.getPane('tricot').style.zIndex=700;
 
+// DATA
 let soportes=[],filtrados=[],tricot=[];
 let h6,h8;
 let capaPts=L.markerClusterGroup();
@@ -109,6 +122,20 @@ let capaH6,capaH8,capaComunas;
 
 const layersState={soportes:true,tricot:true,h6:true,h8:false,comunas:true};
 
+// ICONOS MEJORADOS
+const iconSoporte=L.divIcon({
+html:"📍",
+className:"",
+iconSize:[20,20]
+});
+
+const iconTricot=L.divIcon({
+html:"<div style='font-size:22px'>🏬</div>",
+className:"",
+iconSize:[25,25]
+});
+
+// SCORE
 function score(s){
 if(s>=20)return 100;
 if(s>=10)return 60;
@@ -116,19 +143,17 @@ if(s>=5)return 30;
 return 10;
 }
 
-function insight(s){
-if(s>=100)return "Alta saturación comercial";
-if(s>=60)return "Zona fuerte";
-return "Oportunidad";
-}
-
-// ICONOS
-const iconSoporte=L.divIcon({html:"📍",className:"",iconSize:[20,20]});
-const iconTricot=L.divIcon({html:"🏬",className:"",iconSize:[20,20]});
-
-// DATA
-fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
-soportes=d;filtrados=d;init();render();
+// CARGA DATOS
+fetch('data/soportes_enriquecidos.json')
+.then(r=>r.json())
+.then(d=>{
+soportes=d.map((s,i)=>({
+...s,
+nombre:s.nombre||s.NOMBRE||s.titulo||`Soporte ${i+1}`
+}));
+filtrados=soportes;
+init();
+render();
 });
 
 fetch('data/tricot.json').then(r=>r.json()).then(d=>{
@@ -139,6 +164,7 @@ totalTricot.innerText=tricot.length;
 fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
 fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
 
+// COMUNAS
 fetch('data/comunas.geojson').then(r=>r.json()).then(d=>{
 capaComunas=L.geoJSON(d,{
 style:{color:'#111',weight:1},
@@ -150,6 +176,22 @@ l.on('mouseout',()=>capaComunas.resetStyle(l));
 }
 });
 if(layersState.comunas) capaComunas.addTo(map);
+});
+
+// FILE INPUT
+fileInput.addEventListener('change',function(e){
+const file=e.target.files[0];
+const reader=new FileReader();
+
+reader.onload=function(ev){
+const data=JSON.parse(ev.target.result);
+soportes=data;
+filtrados=data;
+init();
+render();
+};
+
+reader.readAsText(file);
 });
 
 // INIT
@@ -179,17 +221,16 @@ chip.classList.toggle('active',layersState[k]);
 render();
 };
 });
-
 }
 
-// FILTRAR
+// FILTRO
 function filtrar(){
 const q=search.value.toLowerCase();
 const c=comuna.value;
 const cat=categoria.value;
 
 filtrados=soportes.filter(s=>
-(!q||(s.nombre||'').toLowerCase().includes(q)) &&
+(!q||(s.nombre && s.nombre.toLowerCase().includes(q))) &&
 (!c||s.comuna===c) &&
 (!cat||s.categoria===cat)
 );
@@ -214,8 +255,9 @@ const m=L.marker([p.lat,p.lng],{icon:iconSoporte});
 
 m.bindPopup(`
 <b>${p.nombre}</b><br>
-${p.comuna}<br>
-Tricot cercanos: ${p.tricot_cercanos}
+📍 ${p.comuna}<br>
+🏷 ${p.categoria}<br>
+🏬 Tricot cercanos: ${p.tricot_cercanos}
 `);
 
 capaPts.addLayer(m);
@@ -230,7 +272,7 @@ capaTricot.clearLayers();
 
 tricot.forEach(t=>{
 const m=L.marker([t.lat,t.lng],{icon:iconTricot});
-m.bindPopup(`<b>TRICOT</b><br>${t.comuna}`);
+m.bindPopup(`<b>TIENDA TRICOT</b><br>${t.comuna}`);
 capaTricot.addLayer(m);
 });
 
@@ -283,11 +325,14 @@ l.bindPopup(`H8<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
 }
 
 // KPI
-const ratioVal = filtrados.length ? Math.round((cercanos/filtrados.length)*100) : 0;
+const total=filtrados.length;
+const ratioVal = total ? Math.round((cercanos/total)*100) : 0;
 
-ratio.innerText = ratioVal+"%";
+ratio.innerText=ratioVal+"%";
+soportesCercanos.innerText=cercanos;
+soportesLejanos.innerText=total-cercanos;
 
-// ranking
+// RANKING
 const top=feats.map(f=>({...f,s:score(f.properties.soportes||0)}))
 .sort((a,b)=>b.s-a.s).slice(0,5);
 

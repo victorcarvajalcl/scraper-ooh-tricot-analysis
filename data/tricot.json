@@ -1,0 +1,466 @@
+[
+  {
+    "nombre": "Tricot",
+    "direccion": "21 de Mayo 364",
+    "comuna": "Arica",
+    "lat": -18.4816329,
+    "lng": -70.3155606,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Vivar 636",
+    "comuna": "Iquique",
+    "lat": -20.2164773,
+    "lng": -70.1486776,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Arturo Prat 501",
+    "comuna": "Antofagasta",
+    "lat": -23.64802,
+    "lng": -70.3971048,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Arturo Prat 533",
+    "comuna": "Antofagasta",
+    "lat": -23.6481988,
+    "lng": -70.396933,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Einstein 287, Local 150 y 250",
+    "comuna": "Antofagasta",
+    "lat": -22.4498667,
+    "lng": -68.9268032,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Los Carreras 501",
+    "comuna": "Copiapó",
+    "lat": -27.4077791,
+    "lng": -70.2822986,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Cordovez 618",
+    "comuna": "La Serena",
+    "lat": -29.9033163,
+    "lng": -71.2520305,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Cordovez 622",
+    "comuna": "La Serena",
+    "lat": -29.9033163,
+    "lng": -71.2520305,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Balmaceda 2885, Lc 193",
+    "comuna": "La Serena",
+    "lat": -29.9256883,
+    "lng": -71.2595653,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Aldunate 1139",
+    "comuna": "Coquimbo",
+    "lat": -29.879147,
+    "lng": -71.2471721,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Coquimbo 354 D",
+    "comuna": "Ovalle",
+    "lat": -30.6021037,
+    "lng": -71.1995867,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Arturo Prat 93",
+    "comuna": "San Felipe",
+    "lat": -32.7514107,
+    "lng": -70.7200089,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Portus 266",
+    "comuna": "San Felipe",
+    "lat": -32.7453681,
+    "lng": -70.7210429,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Esmeralda 231",
+    "comuna": "Los Andes",
+    "lat": -32.8329912,
+    "lng": -70.5986572,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "O'Higgins 270-C",
+    "comuna": "Los Andes",
+    "lat": -32.8342005,
+    "lng": -70.598479,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Ortiz de Rosas 612, Local 2",
+    "comuna": "La Ligua",
+    "lat": -32.4518023,
+    "lng": -71.2525342,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Prat 125",
+    "comuna": "Quillota",
+    "lat": -32.876898,
+    "lng": -71.2438352,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Aldunate 250",
+    "comuna": "La Calera",
+    "lat": -32.7866417,
+    "lng": -71.191078,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Diego Portales 822",
+    "comuna": "Quilpué",
+    "lat": -33.0470763,
+    "lng": -71.4409067,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Valparaíso 625",
+    "comuna": "Villa Alemana",
+    "lat": -33.0456227,
+    "lng": -71.3903205,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Valparaíso 633",
+    "comuna": "Villa Alemana",
+    "lat": -33.0456227,
+    "lng": -71.3903205,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Condell 1435",
+    "comuna": "Valparaíso",
+    "lat": -33.0466714,
+    "lng": -71.6199858,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Esmeralda 1154, Local 4",
+    "comuna": "Valparaíso",
+    "lat": -33.0637519,
+    "lng": -71.5958786,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Valparaíso 360",
+    "comuna": "Viña del Mar",
+    "lat": -33.0258875,
+    "lng": -71.5463541,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Valparaíso 1070",
+    "comuna": "Viña del Mar",
+    "lat": -33.0264444,
+    "lng": -71.5471236,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Camino Internacional 2440",
+    "comuna": "Viña del Mar",
+    "lat": -32.9853423,
+    "lng": -71.4991806,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Libertad 1348",
+    "comuna": "Viña del Mar",
+    "lat": -33.0088361,
+    "lng": -71.5472973,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Ahumada 346, Local 7-8",
+    "comuna": "Santiago",
+    "lat": -33.4391086,
+    "lng": -70.6511825,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Puente 633",
+    "comuna": "Santiago",
+    "lat": -33.4357394,
+    "lng": -70.6513971,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Patronato 318",
+    "comuna": "Santiago",
+    "lat": -33.4297359,
+    "lng": -70.6442827,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Concha y Toro 110",
+    "comuna": "Santiago",
+    "lat": -33.4468276,
+    "lng": -70.6657436,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Irarrázaval 2401, Local 11",
+    "comuna": "Ñuñoa",
+    "lat": -33.4543725,
+    "lng": -70.6062588,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Gran Avda. José Miguel Carrera 6150",
+    "comuna": "San Miguel",
+    "lat": -33.5125768,
+    "lng": -70.6559244,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Manquehue Sur 31, Local 149",
+    "comuna": "Las Condes",
+    "lat": -33.409769,
+    "lng": -70.5678772,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Manquehue Sur 31, Local 113",
+    "comuna": "Las Condes",
+    "lat": -33.409769,
+    "lng": -70.5678772,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Padre Hurtado Sur 875, Lc 112",
+    "comuna": "Las Condes",
+    "lat": -33.415114,
+    "lng": -70.5406024,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Pajaritos 1948, Local 1",
+    "comuna": "Maipú",
+    "lat": -33.5094513,
+    "lng": -70.7575978,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Pajaritos 1948",
+    "comuna": "Maipú",
+    "lat": -33.5096186,
+    "lng": -70.7581975,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Eyzaguirre 609",
+    "comuna": "San Bernardo",
+    "lat": -33.5795154,
+    "lng": -70.7008449,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "O'Higgins 646",
+    "comuna": "San Fernando",
+    "lat": -34.5956242,
+    "lng": -70.9824616,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. O'Higgins 720",
+    "comuna": "San Fernando",
+    "lat": -34.5985112,
+    "lng": -70.9881189,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Prat 220",
+    "comuna": "Rengo",
+    "lat": -34.3973242,
+    "lng": -70.8515614,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Prat 211",
+    "comuna": "Rengo",
+    "lat": -34.4059501,
+    "lng": -70.8590892,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Arturo Prat 2370",
+    "comuna": "San Javier",
+    "lat": -35.5942515,
+    "lng": -71.7352408,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Independencia 699",
+    "comuna": "San Carlos",
+    "lat": -36.4565978,
+    "lng": -71.7643807,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Serrano 436",
+    "comuna": "San Carlos",
+    "lat": -36.4325633,
+    "lng": -71.9598523,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Serrano 395",
+    "comuna": "Talca",
+    "lat": -35.5220376,
+    "lng": -71.6880563,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Lautaro 421",
+    "comuna": "Talca",
+    "lat": -35.4524321,
+    "lng": -72.2784961,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Barros Arana 586",
+    "comuna": "Concepción",
+    "lat": -36.8276449,
+    "lng": -73.0531438,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Av. Bulnes 498",
+    "comuna": "Concepción",
+    "lat": -36.8170221,
+    "lng": -73.0462194,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Manuel Montt 628",
+    "comuna": "Chillán",
+    "lat": -36.605637,
+    "lng": -72.088417,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Balmaceda 86",
+    "comuna": "Los Ángeles",
+    "lat": -37.4660534,
+    "lng": -72.3409474,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Balmaceda 110",
+    "comuna": "Los Ángeles",
+    "lat": -37.4660534,
+    "lng": -72.3409474,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Manuel Rodríguez 1055",
+    "comuna": "Temuco",
+    "lat": -38.737296,
+    "lng": -72.5834127,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Pedro de Valdivia 845",
+    "comuna": "Villarrica",
+    "lat": -39.2839632,
+    "lng": -72.226803,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Independencia 539",
+    "comuna": "Valdivia",
+    "lat": -39.8121146,
+    "lng": -73.2465689,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Benavente 1075, Local 1510",
+    "comuna": "Puerto Montt",
+    "lat": -41.4713886,
+    "lng": -72.9431201,
+    "tipo": "tienda"
+  },
+  {
+    "nombre": "Tricot",
+    "direccion": "Balmaceda 86",
+    "comuna": "Puerto Montt",
+    "lat": -41.4685776,
+    "lng": -72.9468345,
+    "tipo": "tienda"
+  }
+]

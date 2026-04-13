@@ -1,29 +1,32 @@
 import json
 import h3
 
-# Cargar H6 desde tu data real
-with open("data/h6.geojson") as f:
-    h6_geo = json.load(f)
+# Bounding box Santiago
+min_lat, max_lat = -33.75, -33.15
+min_lng, max_lng = -71.05, -70.2
 
-h3_set = set()
+resolution = 4
 
-# Obtener H3 padres
-for feature in h6_geo["features"]:
-    props = feature.get("properties", {})
-    
-    h6_index = props.get("h6") or props.get("hex")
-    
-    if not h6_index:
-        continue
+# GeoJSON formato correcto
+polygon = {
+    "type": "Polygon",
+    "coordinates": [[
+        [min_lng, min_lat],
+        [max_lng, min_lat],
+        [max_lng, max_lat],
+        [min_lng, max_lat],
+        [min_lng, min_lat]
+    ]]
+}
 
-    parent = h3.cell_to_parent(h6_index, 3)
-    h3_set.add(parent)
+# ✅ NUEVA FUNCIÓN (H3 v4)
+h3_indexes = h3.geo_to_cells(polygon, resolution)
 
 features = []
 
-for h in h3_set:
+for h in h3_indexes:
     boundary = h3.cell_to_boundary(h)
-    
+
     coords = [[lng, lat] for lat, lng in boundary]
     coords.append(coords[0])
 
@@ -43,8 +46,7 @@ geojson = {
     "features": features
 }
 
-# Guardar donde tu index lo espera
 with open("data/h3.geojson", "w") as f:
     json.dump(geojson, f)
 
-print("✅ H3 generado correctamente en data/h3.geojson")
+print(f"✅ Generados {len(features)} hex H3")

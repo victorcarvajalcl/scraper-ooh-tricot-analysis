@@ -6,6 +6,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
 maxZoom:19
 }).addTo(map);
 
+// ================= VARIABLES
 let soportes=[],filtrados=[],tricot=[];
 let h3=null,h6=null,h8=null;
 
@@ -17,58 +18,56 @@ const layersState={
 soportes:true,
 tricot:true,
 h6:true,
-h8:false,
-h3:false,
+h8:true,
+h3:true,
 comunas:true
 };
 
 const iconSoporte=L.divIcon({html:"📍"});
 const iconTricot=L.divIcon({html:"<div style='font-size:26px'>🏬</div>"});
 
-// ================= DEBUG
-function log(msg){
-console.log("OOH:",msg);
-}
-
 // ================= DATA
-fetch('data/soportes_enriquecidos.json')
-.then(r=>r.json())
-.then(d=>{
-log("soportes cargados");
+fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
 soportes=d.map((s,i)=>({...s,nombre:s.nombre||`Soporte ${i+1}`}));
 filtrados=soportes;
 init();
 render();
 });
 
-fetch('data/tricot.json')
-.then(r=>r.json())
-.then(d=>{tricot=d;log("tricot OK");});
+fetch('data/tricot.json').then(r=>r.json()).then(d=>tricot=d);
 
 fetch('data/h3.geojson')
 .then(r=>r.json())
-.then(d=>{h3=d;log("h3 OK");})
-.catch(()=>log("⚠️ h3 no encontrado"));
+.then(d=>{h3=d;console.log("H3 OK")})
+.catch(()=>console.log("⚠️ H3 NO EXISTE"));
 
-fetch('data/h6.geojson')
-.then(r=>r.json())
-.then(d=>{h6=d;log("h6 OK");});
+fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
+fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
 
-fetch('data/h8.geojson')
-.then(r=>r.json())
-.then(d=>{h8=d;log("h8 OK");});
-
-// ================= COMUNAS
-fetch('data/comunas.geojson')
-.then(r=>r.json())
-.then(d=>{
+// ================= COMUNAS MEJORADAS
+fetch('data/comunas.geojson').then(r=>r.json()).then(d=>{
 capaComunas=L.geoJSON(d,{
-style:{color:'#334155',weight:1,fillOpacity:0},
+style:{
+color:'#22c55e',
+weight:1,
+fillOpacity:0.05
+},
 onEachFeature:(f,l)=>{
 const n=f.properties.Comuna||f.properties.NOM_COM;
+
 l.bindTooltip(n);
-l.on('mouseover',()=>l.setStyle({color:'#22c55e',weight:3,fillOpacity:0.1}));
-l.on('mouseout',()=>capaComunas.resetStyle(l));
+
+l.on('mouseover',()=>{
+l.setStyle({fillOpacity:0.2,weight:2});
+});
+
+l.on('mouseout',()=>{
+capaComunas.resetStyle(l);
+});
+
+l.on('click',()=>{
+map.fitBounds(l.getBounds());
+});
 }
 }).addTo(map);
 });
@@ -116,12 +115,12 @@ filtrados=soportes.filter(s=>
 render();
 }
 
-// ================= SCORE
+// ================= SCORE REAL
 function score(s){
-if(s>=20)return 100;
-if(s>=10)return 60;
-if(s>=5)return 30;
-return 10;
+if(s>=20)return {val:100,label:"🔥 Zona caliente"};
+if(s>=10)return {val:60,label:"📈 Alta actividad"};
+if(s>=5)return {val:30,label:"⚡ Media"};
+return {val:10,label:"🧊 Baja"};
 }
 
 // ================= RENDER
@@ -161,7 +160,7 @@ const dy=s.lng-t.lng;
 return Math.sqrt(dx*dx+dy*dy)<0.01;
 }).length;
 
-let nivel = cercanosT>25?"Alta cobertura":cercanosT>10?"Cobertura media":"Oportunidad";
+let nivel = cercanosT>25?"🔥 Alta cobertura":cercanosT>10?"⚡ Media":"🧊 Oportunidad";
 
 const m=L.marker([t.lat,t.lng],{icon:iconTricot});
 
@@ -185,15 +184,15 @@ totalSoportes.innerText=total;
 ratio.innerText=ratioVal+"%";
 
 insight.innerText =
-ratioVal>60?"Alta cobertura consolidada":
-ratioVal>30?"Cobertura en desarrollo":
-"Alta oportunidad comercial";
+ratioVal>60?"🔥 Alta cobertura consolidada":
+ratioVal>30?"⚡ Cobertura en desarrollo":
+"🧊 Alta oportunidad comercial";
 
 // HEX
 renderHex();
 }
 
-// ================= HEX
+// ================= HEX + ANALISIS
 function renderHex(){
 
 if(capaH3) map.removeLayer(capaH3);
@@ -204,30 +203,61 @@ const z=map.getZoom();
 const bounds=map.getBounds();
 
 // H3
-if(z<=9 && layersState.h3 && h3){
+if(layersState.h3 && h3){
 capaH3=L.geoJSON(h3,{
-style:{color:'#111827',weight:2,fillOpacity:0}
+style:{color:'#111827',weight:2,fillOpacity:0},
+onEachFeature:(f,l)=>{
+l.bindPopup(`<b>H3 Macro Zona</b><br>ID: ${f.properties.h3}`);
+}
 }).addTo(map);
 }
 
 // H6
-if(z>9 && z<=12 && layersState.h6 && h6){
+if(layersState.h6 && h6){
 const visible=h6.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds()));
+
 capaH6=L.geoJSON(visible,{
-style:{color:'#2563eb',fillOpacity:0.3}
+style:f=>{
+const s=score(f.properties.soportes||0);
+return {color:'#2563eb',fillOpacity:s.val/200};
+},
+onEachFeature:(f,l)=>{
+const s=score(f.properties.soportes||0);
+
+l.bindPopup(`
+<b>H6</b><br>
+Soportes: ${f.properties.soportes}<br>
+Score: ${s.val}<br>
+💡 ${s.label}
+`);
+}
 }).addTo(map);
 }
 
 // H8
-if(z>12 && layersState.h8 && h8){
+if(layersState.h8 && h8){
 const visible=h8.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds()));
+
 capaH8=L.geoJSON(visible,{
-style:{color:'#9333ea',fillOpacity:0.25}
+style:f=>{
+const s=score(f.properties.soportes||0);
+return {color:'#9333ea',fillOpacity:s.val/200};
+},
+onEachFeature:(f,l)=>{
+const s=score(f.properties.soportes||0);
+
+l.bindPopup(`
+<b>H8</b><br>
+Soportes: ${f.properties.soportes}<br>
+Score: ${s.val}<br>
+💡 ${s.label}
+`);
+}
 }).addTo(map);
 }
 
 }
 
-map.on('zoomend',render);
+map.on('zoomend moveend',render);
 
 </script>

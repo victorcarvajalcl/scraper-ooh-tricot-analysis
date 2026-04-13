@@ -2,9 +2,7 @@
 
 const map=L.map('map').setView([-33.45,-70.66],11);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-maxZoom:19
-}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
 // ================= VARIABLES
 let soportes=[],filtrados=[],tricot=[];
@@ -18,64 +16,58 @@ const layersState={
 soportes:true,
 tricot:true,
 h6:true,
-h8:true,
-h3:true,
+h8:false,
+h3:false,
 comunas:true
 };
 
-const iconSoporte=L.divIcon({html:"📍"});
-const iconTricot=L.divIcon({html:"<div style='font-size:26px'>🏬</div>"});
+// ================= DEBUG
+function log(msg){
+console.log("OOH:",msg);
+}
 
-// ================= DATA
-fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
-soportes=d.map((s,i)=>({...s,nombre:s.nombre||`Soporte ${i+1}`}));
+// ================= LOAD DATOS SEGURO
+Promise.all([
+fetch('data/soportes_enriquecidos.json').then(r=>r.json()),
+fetch('data/tricot.json').then(r=>r.json()).catch(()=>[]),
+fetch('data/h3.geojson').then(r=>r.json()).catch(()=>null),
+fetch('data/h6.geojson').then(r=>r.json()),
+fetch('data/h8.geojson').then(r=>r.json()),
+fetch('data/comunas.geojson').then(r=>r.json())
+])
+.then(([soportesData,tricotData,h3Data,h6Data,h8Data,comunasData])=>{
+
+log("datos cargados");
+
+soportes=soportesData.map((s,i)=>({...s,nombre:s.nombre||`Soporte ${i+1}`}));
 filtrados=soportes;
-init();
-render();
-});
+tricot=tricotData;
+h3=h3Data;
+h6=h6Data;
+h8=h8Data;
 
-fetch('data/tricot.json').then(r=>r.json()).then(d=>tricot=d);
-
-fetch('data/h3.geojson')
-.then(r=>r.json())
-.then(d=>{h3=d;console.log("H3 OK")})
-.catch(()=>console.log("⚠️ H3 NO EXISTE"));
-
-fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
-fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
-
-// ================= COMUNAS MEJORADAS
-fetch('data/comunas.geojson').then(r=>r.json()).then(d=>{
-capaComunas=L.geoJSON(d,{
-style:{
-color:'#22c55e',
-weight:1,
-fillOpacity:0.05
-},
+// ================= COMUNAS
+capaComunas=L.geoJSON(comunasData,{
+style:{color:'#22c55e',weight:1,fillOpacity:0.05},
 onEachFeature:(f,l)=>{
-const n=f.properties.Comuna||f.properties.NOM_COM;
-
-l.bindTooltip(n);
-
-l.on('mouseover',()=>{
-l.setStyle({fillOpacity:0.2,weight:2});
-});
-
-l.on('mouseout',()=>{
-capaComunas.resetStyle(l);
-});
-
-l.on('click',()=>{
-map.fitBounds(l.getBounds());
-});
+l.on('click',()=>map.fitBounds(l.getBounds()));
 }
 }).addTo(map);
+
+init();
+render();
+
+})
+.catch(err=>{
+console.error("ERROR CARGANDO DATOS:",err);
+alert("Error cargando datos. Revisa consola (F12)");
 });
 
 // ================= INIT
 function init(){
-const comunas=[...new Set(soportes.map(s=>s.comuna))];
-const categorias=[...new Set(soportes.map(s=>s.categoria))];
+
+const comunas=[...new Set(soportes.map(s=>s.comuna).filter(Boolean))];
+const categorias=[...new Set(soportes.map(s=>s.categoria).filter(Boolean))];
 
 comuna.innerHTML='<option value="">Todas</option>'+comunas.map(c=>`<option>${c}</option>`).join('');
 categoria.innerHTML='<option value="">Todas</option>'+categorias.map(c=>`<option>${c}</option>`).join('');
@@ -86,7 +78,9 @@ document.getElementById(id).addEventListener('input',filtrar);
 
 reset.onclick=()=>{
 filtrados=soportes;
-search.value='';comuna.value='';categoria.value='';
+search.value='';
+comuna.value='';
+categoria.value='';
 render();
 };
 
@@ -98,16 +92,18 @@ chip.classList.toggle('active',layersState[k]);
 render();
 };
 });
+
 }
 
 // ================= FILTRO
 function filtrar(){
+
 const q=search.value.toLowerCase();
 const c=comuna.value;
 const cat=categoria.value;
 
 filtrados=soportes.filter(s=>
-(!q||(s.nombre && s.nombre.toLowerCase().includes(q))) &&
+(!q||(s.nombre||"").toLowerCase().includes(q)) &&
 (!c||s.comuna===c) &&
 (!cat||s.categoria===cat)
 );
@@ -115,144 +111,69 @@ filtrados=soportes.filter(s=>
 render();
 }
 
-// ================= SCORE REAL
-function score(s){
-if(s>=20)return {val:100,label:"🔥 Zona caliente"};
-if(s>=10)return {val:60,label:"📈 Alta actividad"};
-if(s>=5)return {val:30,label:"⚡ Media"};
-return {val:10,label:"🧊 Baja"};
-}
-
 // ================= RENDER
 function render(){
+
+if(!soportes.length){
+log("sin datos");
+return;
+}
 
 capaPts.clearLayers();
 capaTricot.clearLayers();
 
-let cercanos=0;
-
 // SOPORTES
 if(layersState.soportes){
 filtrados.forEach(p=>{
-if(p.tricot_cercanos>0) cercanos++;
+if(!p.lat || !p.lng) return;
 
-const m=L.marker([p.lat,p.lng],{icon:iconSoporte});
-
-m.bindPopup(`
-<b>${p.nombre}</b><br>
-📍 ${p.comuna||'-'}<br>
-🏷 ${p.categoria||'-'}<br>
-📢 ${p.tipo||'-'}<br>
-🏬 Tricot cercanos: ${p.tricot_cercanos||0}
-`);
-
-capaPts.addLayer(m);
+capaPts.addLayer(
+L.marker([p.lat,p.lng]).bindPopup(p.nombre)
+);
 });
 map.addLayer(capaPts);
 }
 
 // TRICOT
-if(layersState.tricot){
+if(layersState.tricot && tricot.length){
 tricot.forEach(t=>{
-const cercanosT = filtrados.filter(s=>{
-const dx=s.lat-t.lat;
-const dy=s.lng-t.lng;
-return Math.sqrt(dx*dx+dy*dy)<0.01;
-}).length;
-
-let nivel = cercanosT>25?"🔥 Alta cobertura":cercanosT>10?"⚡ Media":"🧊 Oportunidad";
-
-const m=L.marker([t.lat,t.lng],{icon:iconTricot});
-
-m.bindPopup(`
-<b>TIENDA TRICOT</b><br>
-📍 ${t.comuna}<br>
-📊 Soportes cercanos: ${cercanosT}<br>
-💡 ${nivel}
-`);
-
-capaTricot.addLayer(m);
+capaTricot.addLayer(L.marker([t.lat,t.lng]));
 });
 map.addLayer(capaTricot);
 }
 
 // KPI
-const total=filtrados.length;
-const ratioVal = total ? Math.round((cercanos/total)*100) : 0;
-
-totalSoportes.innerText=total;
-ratio.innerText=ratioVal+"%";
-
-insight.innerText =
-ratioVal>60?"🔥 Alta cobertura consolidada":
-ratioVal>30?"⚡ Cobertura en desarrollo":
-"🧊 Alta oportunidad comercial";
+totalSoportes.innerText=filtrados.length;
 
 // HEX
 renderHex();
 }
 
-// ================= HEX + ANALISIS
+// ================= HEX
 function renderHex(){
 
 if(capaH3) map.removeLayer(capaH3);
 if(capaH6) map.removeLayer(capaH6);
 if(capaH8) map.removeLayer(capaH8);
 
-const z=map.getZoom();
 const bounds=map.getBounds();
 
 // H3
 if(layersState.h3 && h3){
-capaH3=L.geoJSON(h3,{
-style:{color:'#111827',weight:2,fillOpacity:0},
-onEachFeature:(f,l)=>{
-l.bindPopup(`<b>H3 Macro Zona</b><br>ID: ${f.properties.h3}`);
-}
-}).addTo(map);
+capaH3=L.geoJSON(h3,{style:{color:'#000'}}).addTo(map);
 }
 
 // H6
 if(layersState.h6 && h6){
-const visible=h6.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds()));
-
-capaH6=L.geoJSON(visible,{
-style:f=>{
-const s=score(f.properties.soportes||0);
-return {color:'#2563eb',fillOpacity:s.val/200};
-},
-onEachFeature:(f,l)=>{
-const s=score(f.properties.soportes||0);
-
-l.bindPopup(`
-<b>H6</b><br>
-Soportes: ${f.properties.soportes}<br>
-Score: ${s.val}<br>
-💡 ${s.label}
-`);
-}
+capaH6=L.geoJSON(h6.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds())),{
+style:{color:'#2563eb',fillOpacity:0.3}
 }).addTo(map);
 }
 
 // H8
 if(layersState.h8 && h8){
-const visible=h8.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds()));
-
-capaH8=L.geoJSON(visible,{
-style:f=>{
-const s=score(f.properties.soportes||0);
-return {color:'#9333ea',fillOpacity:s.val/200};
-},
-onEachFeature:(f,l)=>{
-const s=score(f.properties.soportes||0);
-
-l.bindPopup(`
-<b>H8</b><br>
-Soportes: ${f.properties.soportes}<br>
-Score: ${s.val}<br>
-💡 ${s.label}
-`);
-}
+capaH8=L.geoJSON(h8.features.filter(f=>bounds.intersects(L.geoJSON(f).getBounds())),{
+style:{color:'#9333ea',fillOpacity:0.2}
 }).addTo(map);
 }
 

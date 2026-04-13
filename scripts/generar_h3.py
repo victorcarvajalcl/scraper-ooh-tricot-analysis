@@ -5,7 +5,7 @@ import h3
 min_lat, max_lat = -33.75, -33.15
 min_lng, max_lng = -71.05, -70.2
 
-resolution = 4
+resolution = 5
 
 # GeoJSON formato correcto
 polygon = {

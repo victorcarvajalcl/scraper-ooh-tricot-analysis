@@ -3,32 +3,70 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OOH + TRICOT PRO</title>
+<title>OOH Intelligence - Demo Cliente</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
 <style>
-body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
+body{margin:0;font-family:Inter,Arial;background:#0b1220;color:#fff}
 .app{display:flex;height:100vh}
-.sidebar{width:420px;background:#0b1324;padding:15px;overflow:auto}
-.panel{margin-bottom:18px}
 
-input,select,button{
-width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
-background:#091a36;color:#fff;border:none
+/* SIDEBAR */
+.sidebar{
+width:420px;
+background:#0b1324;
+padding:20px;
+overflow:auto;
+border-right:1px solid #1e293b;
 }
 
+h2{margin-bottom:10px}
+h3{margin-bottom:10px;font-size:14px;color:#94a3b8}
+
+.card{
+background:#111827;
+padding:14px;
+border-radius:12px;
+margin-bottom:12px;
+}
+
+.kpi{
+font-size:20px;
+font-weight:bold;
+}
+
+.label{
+font-size:12px;
+color:#9ca3af;
+}
+
+/* FILTROS */
+input,select,button{
+width:100%;
+padding:10px;
+margin-bottom:8px;
+border-radius:10px;
+background:#1e293b;
+color:#fff;
+border:none;
+}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+padding:6px 10px;
+background:#1e293b;
+border-radius:999px;
+cursor:pointer;
+font-size:12px;
+}
+.chip.active{background:#2563eb}
+
+/* MAP */
 .map-wrap{flex:1}
 #map{height:100%}
-
-.stat{background:#081a3b;padding:10px;border-radius:10px;margin-bottom:8px}
-.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px}
-
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{padding:8px 12px;background:#0a1b3a;border-radius:999px;cursor:pointer}
-.chip.active{background:#2563eb}
 </style>
 </head>
 
@@ -38,31 +76,42 @@ background:#091a36;color:#fff;border:none
 
 <div class="sidebar">
 
-<h2>OOH + TRICOT</h2>
+<h2>OOH Intelligence</h2>
+<div class="label">Análisis territorial publicitario</div>
 
-<div class="panel">
-<h3>Resumen</h3>
-<div class="stat">Soportes: <b id="totalSoportes">0</b></div>
-<div class="stat">Comunas: <b id="totalComunas">0</b></div>
+<!-- KPIs -->
+<div class="card">
+<div class="label">Soportes totales</div>
+<div class="kpi" id="totalSoportes">0</div>
 </div>
 
-<div class="panel">
-<h3>Análisis Comercial</h3>
-<div class="kpi">Tiendas: <b id="totalTricot">0</b></div>
-<div class="kpi">% cercanos: <b id="ratio">0%</b></div>
-<div class="kpi">Cercanos: <b id="soportesCercanos">0</b></div>
-<div class="kpi">Sin cobertura: <b id="soportesLejanos">0</b></div>
+<div class="card">
+<div class="label">Cobertura cercana a retail</div>
+<div class="kpi" id="ratio">0%</div>
 </div>
 
-<div class="panel">
+<div class="card">
+<div class="label">Tiendas Tricot</div>
+<div class="kpi" id="totalTricot">0</div>
+</div>
+
+<div class="card">
+<div class="label">Oportunidad detectada</div>
+<div id="insight">—</div>
+</div>
+
+<!-- FILTROS -->
+<div class="card">
+<h3>Filtros</h3>
 <input id="search" placeholder="Buscar soporte">
 <select id="comuna"></select>
 <select id="categoria"></select>
-<button id="reset">Reset</button>
+<button id="reset">Limpiar filtros</button>
 </div>
 
-<div class="panel">
-<h3>Capas</h3>
+<!-- CAPAS -->
+<div class="card">
+<h3>Visualización</h3>
 <div class="chips">
 <div class="chip active" data-layer="soportes">Soportes</div>
 <div class="chip active" data-layer="tricot">Tricot</div>
@@ -74,7 +123,10 @@ background:#091a36;color:#fff;border:none
 
 </div>
 
-<div class="map-wrap"><div id="map"></div></div>
+<div class="map-wrap">
+<div id="map"></div>
+</div>
+
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -82,9 +134,11 @@ background:#091a36;color:#fff;border:none
 
 <script>
 
+// MAPA
 const map=L.map('map').setView([-33.45,-70.66],11);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
+// DATA
 let soportes=[],filtrados=[],tricot=[];
 let h6,h8;
 
@@ -92,11 +146,19 @@ let capaPts=L.markerClusterGroup({maxClusterRadius:50});
 let capaTricot=L.layerGroup();
 let capaH6,capaH8,capaComunas;
 
-const layersState={soportes:true,tricot:true,h6:true,h8:false,comunas:true};
+const layersState={
+soportes:true,
+tricot:true,
+h6:true,
+h8:false,
+comunas:true
+};
 
-const iconSoporte=L.divIcon({html:"📍",iconSize:[20,20]});
-const iconTricot=L.divIcon({html:"<div style='font-size:26px'>🏬</div>",iconSize:[26,26]});
+// ICONOS
+const iconSoporte=L.divIcon({html:"📍"});
+const iconTricot=L.divIcon({html:"<div style='font-size:26px'>🏬</div>"});
 
+// DATA LOAD
 fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
 soportes=d.map((s,i)=>({...s,nombre:s.nombre||`Soporte ${i+1}`}));
 filtrados=soportes;
@@ -112,6 +174,7 @@ totalTricot.innerText=tricot.length;
 fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
 fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
 
+// INIT
 function init(){
 
 const comunas=[...new Set(soportes.map(s=>s.comuna))];
@@ -130,6 +193,7 @@ search.value='';comuna.value='';categoria.value='';
 render();
 };
 
+// chips capas
 document.querySelectorAll('.chip').forEach(chip=>{
 chip.onclick=()=>{
 const k=chip.dataset.layer;
@@ -141,6 +205,7 @@ render();
 
 }
 
+// FILTRO
 function filtrar(){
 const q=search.value.toLowerCase();
 const c=comuna.value;
@@ -155,6 +220,7 @@ filtrados=soportes.filter(s=>
 render();
 }
 
+// RENDER
 function render(){
 
 capaPts.clearLayers();
@@ -171,53 +237,50 @@ const m=L.marker([p.lat,p.lng],{icon:iconSoporte});
 
 m.bindPopup(`
 <b>${p.nombre}</b><br>
-📍 ${p.comuna||'-'}<br>
-🏷 ${p.categoria||'-'}<br>
-📢 Tipo: ${p.tipo||'-'}<br>
-🏬 Tricot cercanos: ${p.tricot_cercanos||0}
+📍 ${p.comuna}<br>
+🏷 ${p.categoria}<br>
+📢 ${p.tipo||''}<br>
+🏬 Tricot cercanos: ${p.tricot_cercanos}
 `);
 
 capaPts.addLayer(m);
 });
+
 map.addLayer(capaPts);
+}else{
+map.removeLayer(capaPts);
 }
 
 // TRICOT
 if(layersState.tricot){
 tricot.forEach(t=>{
-const cercanosT = filtrados.filter(s=>{
-const dx = s.lat - t.lat;
-const dy = s.lng - t.lng;
-return Math.sqrt(dx*dx + dy*dy) < 0.01;
-}).length;
-
 const m=L.marker([t.lat,t.lng],{icon:iconTricot});
-
-m.bindPopup(`
-<b>TIENDA TRICOT</b><br>
-📍 ${t.comuna||'-'}<br>
-📊 Soportes cercanos: ${cercanosT}<br>
-💡 ${cercanosT>20?"Alta cobertura":"Oportunidad"}
-`);
-
+m.bindPopup(`<b>Tienda Tricot</b><br>${t.comuna}`);
 capaTricot.addLayer(m);
 });
-
 map.addLayer(capaTricot);
+}else{
+map.removeLayer(capaTricot);
 }
 
 // KPI
 const total=filtrados.length;
-ratio.innerText = total ? Math.round((cercanos/total)*100)+"%" : "0%";
-soportesCercanos.innerText=cercanos;
-soportesLejanos.innerText=total-cercanos;
+const ratioVal = total ? Math.round((cercanos/total)*100) : 0;
 
 totalSoportes.innerText=total;
-totalComunas.innerText=new Set(filtrados.map(s=>s.comuna)).size;
+ratio.innerText=ratioVal+"%";
 
+insight.innerText =
+ratioVal > 60 ? "Alta cobertura consolidada" :
+ratioVal > 30 ? "Zona con potencial" :
+"Oportunidad comercial relevante";
+
+// HEX
 renderHex();
+
 }
 
+// HEX
 function renderHex(){
 
 if(capaH6) map.removeLayer(capaH6);

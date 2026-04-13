@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SCRAPER_OOH - Análisis Comercial</title>
+<title>SCRAPER_OOH - Comercial PRO</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
 <style>
 body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
@@ -20,7 +19,8 @@ input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10p
 .map-wrap{flex:1}
 
 .stat{background:#081a3b;padding:10px;border-radius:10px;margin-bottom:8px}
-.ranking-item{background:#0a1b3a;padding:10px;border-radius:10px;margin-bottom:6px}
+.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px}
+.kpi b{font-size:18px}
 
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{padding:8px 12px;background:#0a1b3a;border-radius:999px;cursor:pointer}
@@ -33,23 +33,22 @@ input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10p
 <div class="app">
 
 <div class="sidebar">
-<h2>SCRAPER_OOH PRO</h2>
+<h2>OOH + TRICOT</h2>
 
 <div class="panel">
 <h3>Resumen</h3>
 <div class="stat">Soportes: <b id="totalSoportes">0</b></div>
 <div class="stat">Comunas: <b id="totalComunas">0</b></div>
-<div class="stat">Score prom: <b id="avgScore">0</b></div>
-<div class="stat">Score máx: <b id="topScore">0</b></div>
+<div class="stat">Score: <b id="topScore">0</b></div>
 </div>
 
 <div class="panel">
-<h3>Insight</h3>
-<div id="insight"></div>
+<h3>Análisis Comercial</h3>
+<div class="kpi">Tiendas Tricot: <b id="totalTricot">0</b></div>
+<div class="kpi">% Soportes cercanos: <b id="ratio">0%</b></div>
 </div>
 
 <div class="panel">
-<h3>Filtros</h3>
 <input id="search" placeholder="Buscar soporte">
 <select id="comuna"></select>
 <select id="categoria"></select>
@@ -62,14 +61,8 @@ input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10p
 <div class="chip active" data-layer="soportes">Soportes</div>
 <div class="chip active" data-layer="tricot">Tricot</div>
 <div class="chip active" data-layer="h6">H6</div>
-<div class="chip" data-layer="h8">H8</div>
 <div class="chip active" data-layer="comunas">Comunas</div>
 </div>
-</div>
-
-<div class="panel">
-<h3>Top zonas</h3>
-<div id="ranking"></div>
 </div>
 
 </div>
@@ -89,33 +82,31 @@ const map=L.map('map').setView([-33.45,-70.66],11);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-map.createPane('hex'); map.getPane('hex').style.zIndex=400;
-map.createPane('points'); map.getPane('points').style.zIndex=650;
-map.createPane('tricot'); map.getPane('tricot').style.zIndex=660;
-
-let soportes=[],filtrados=[];
-let tricot=[];
-let h6,h8;
-
+let soportes=[],filtrados=[],tricot=[];
 let capaPts=L.markerClusterGroup();
 let capaTricot=L.layerGroup();
-let capaH6,capaH8,capaComunas;
+let capaComunas;
 
-const layersState={soportes:true,tricot:true,h6:true,h8:false,comunas:true};
+const layersState={soportes:true,tricot:true,h6:true,comunas:true};
 
 function score(s){
 if(s>=20)return 100;
 if(s>=10)return 60;
-if(s>=5)return 30;
-if(s>=1)return 10;
-return 0;
+return 10;
 }
 
-function insight(s){
-if(s>=100)return "Alta saturación comercial";
-if(s>=60)return "Zona fuerte";
-return "Oportunidad";
-}
+// ICONOS
+const iconSoporte = L.divIcon({
+html:"📍",
+className:"",
+iconSize:[20,20]
+});
+
+const iconTricot = L.divIcon({
+html:"🏬",
+className:"",
+iconSize:[20,20]
+});
 
 // DATA
 fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
@@ -124,37 +115,23 @@ soportes=d;filtrados=d;init();render();
 
 fetch('data/tricot.json').then(r=>r.json()).then(d=>{
 tricot=d;
+document.getElementById("totalTricot").innerText=tricot.length;
 });
 
-fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
-fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
-
-fetch('data/comunas.geojson').then(r=>r.json()).then(d=>{
-capaComunas=L.geoJSON(d,{
-style:{color:'#111',weight:1},
-onEachFeature:(f,l)=>{
-const n=f.properties.Comuna||f.properties.NOM_COM;
-l.bindTooltip(n);
-l.on('mouseover',()=>l.setStyle({color:'#22c55e',weight:3}));
-l.on('mouseout',()=>capaComunas.resetStyle(l));
-}
-});
-if(layersState.comunas) capaComunas.addTo(map);
-});
-
+// FILTROS
 function init(){
 
 const comunas=[...new Set(soportes.map(s=>s.comuna))];
 const categorias=[...new Set(soportes.map(s=>s.categoria))];
 
-document.getElementById('comuna').innerHTML='<option value="">Todas</option>'+comunas.map(c=>`<option>${c}</option>`).join('');
-document.getElementById('categoria').innerHTML='<option value="">Todas</option>'+categorias.map(c=>`<option>${c}</option>`).join('');
+comuna.innerHTML='<option value="">Todas</option>'+comunas.map(c=>`<option>${c}</option>`).join('');
+categoria.innerHTML='<option value="">Todas</option>'+categorias.map(c=>`<option>${c}</option>`).join('');
 
 ['search','comuna','categoria'].forEach(id=>{
 document.getElementById(id).addEventListener('input',filtrar);
 });
 
-document.getElementById('reset').onclick=()=>{
+reset.onclick=()=>{
 filtrados=soportes;
 search.value='';comuna.value='';categoria.value='';
 render();
@@ -171,6 +148,7 @@ render();
 
 }
 
+// FILTRAR
 function filtrar(){
 const q=search.value.toLowerCase();
 const c=comuna.value;
@@ -185,31 +163,29 @@ filtrados=soportes.filter(s=>
 render();
 }
 
+// RENDER
 function render(){
 
 map.removeLayer(capaPts);
 capaPts=L.markerClusterGroup();
 
+let cercanos=0;
+
+// SOPORTES
 if(layersState.soportes){
 filtrados.forEach(p=>{
-const color = p.tricot_cercanos>0 ? "#22c55e" : "#ef4444";
 
-const m=L.circleMarker([p.lat,p.lng],{
-pane:'points',
-radius:5,
-color:'#fff',
-fillColor:color,
-fillOpacity:1
-});
+if(p.tricot_cercanos>0) cercanos++;
 
-m.bindPopup(`
-<b>${p.nombre||'Soporte'}</b><br>
-${p.direccion||''}<br>
-${p.comuna||''}<br>
+const marker=L.marker([p.lat,p.lng],{icon:iconSoporte});
+
+marker.bindPopup(`
+<b>${p.nombre}</b><br>
+${p.comuna}<br>
 Tricot cercanos: ${p.tricot_cercanos}
 `);
 
-capaPts.addLayer(m);
+capaPts.addLayer(marker);
 });
 
 map.addLayer(capaPts);
@@ -220,87 +196,23 @@ if(layersState.tricot){
 capaTricot.clearLayers();
 
 tricot.forEach(t=>{
-if(!t.lat||!t.lng)return;
-
-const m=L.circleMarker([t.lat,t.lng],{
-pane:'tricot',
-radius:7,
-color:'#fff',
-fillColor:'#22c55e',
-fillOpacity:1
-});
-
-m.bindPopup(`<b>TRICOT</b><br>${t.comuna||''}`);
+const m=L.marker([t.lat,t.lng],{icon:iconTricot});
+m.bindPopup(`<b>TRICOT</b><br>${t.comuna}`);
 capaTricot.addLayer(m);
 });
 
 map.addLayer(capaTricot);
-}else{
-map.removeLayer(capaTricot);
 }
 
-// COMUNAS
-if(capaComunas){
-if(layersState.comunas && !map.hasLayer(capaComunas)) map.addLayer(capaComunas);
-if(!layersState.comunas && map.hasLayer(capaComunas)) map.removeLayer(capaComunas);
-}
+// KPIs
+const ratio = filtrados.length ? Math.round((cercanos/filtrados.length)*100) : 0;
 
-renderHex();
-}
-
-function renderHex(){
-
-if(capaH6) map.removeLayer(capaH6);
-if(capaH8) map.removeLayer(capaH8);
-
-let feats=[];
-
-if(layersState.h6 && h6){
-feats=h6.features;
-
-capaH6=L.geoJSON(h6,{
-pane:'hex',
-style:f=>({color:'#2563eb',fillOpacity:0.3}),
-onEachFeature:(f,l)=>{
-const s=score(f.properties.soportes||0);
-l.bindPopup(`H6<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
-}
-}).addTo(map);
-}
-
-if(layersState.h8 && h8){
-feats=h8.features;
-
-capaH8=L.geoJSON(h8,{
-pane:'hex',
-style:f=>({color:'#9333ea',fillOpacity:0.25}),
-onEachFeature:(f,l)=>{
-const s=score(f.properties.soportes||0);
-l.bindPopup(`H8<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
-}
-}).addTo(map);
-}
-
-// ranking
-const top=feats.map(f=>({...f,s:score(f.properties.soportes||0)}))
-.sort((a,b)=>b.s-a.s).slice(0,5);
-
-ranking.innerHTML='';
-top.forEach((f,i)=>{
-ranking.innerHTML+=`<div class="ranking-item">#${i+1} Score ${f.s}</div>`;
-});
-
-const max=top[0]?.s||0;
-const avg=top.length?Math.round(top.reduce((a,b)=>a+b.s,0)/top.length):0;
-
-topScore.innerText=max;
-avgScore.innerText=avg;
 totalSoportes.innerText=filtrados.length;
 totalComunas.innerText=new Set(filtrados.map(s=>s.comuna)).size;
-insight.innerText=insight(max);
-}
+ratioText = ratio+"%";
+document.getElementById("ratio").innerText=ratioText;
 
-map.on('zoomend',renderHex);
+}
 
 </script>
 

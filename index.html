@@ -13,17 +13,12 @@ body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
 .app{display:flex;height:100vh}
 .sidebar{width:420px;background:#0b1324;padding:15px;overflow:auto}
 .panel{margin-bottom:18px}
-
-input,select,button{
-width:100%;padding:10px;margin-bottom:10px;border-radius:10px;
-background:#091a36;color:#fff;border:none
-}
-
-#map{height:100%}
+input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;background:#091a36;color:#fff;border:none}
 .map-wrap{flex:1}
+#map{height:100%}
 
 .stat{background:#081a3b;padding:10px;border-radius:10px;margin-bottom:8px}
-.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px;font-weight:bold}
+.kpi{background:#14213d;padding:12px;border-radius:12px;margin-bottom:10px}
 
 .ranking-item{background:#0a1b3a;padding:10px;border-radius:10px;margin-bottom:6px}
 
@@ -38,9 +33,9 @@ background:#091a36;color:#fff;border:none
 <div class="app">
 
 <div class="sidebar">
+
 <h2>OOH + TRICOT</h2>
 
-<!-- RESUMEN -->
 <div class="panel">
 <h3>Resumen</h3>
 <div class="stat">Soportes: <b id="totalSoportes">0</b></div>
@@ -49,7 +44,6 @@ background:#091a36;color:#fff;border:none
 <div class="stat">Score máx: <b id="topScore">0</b></div>
 </div>
 
-<!-- KPI -->
 <div class="panel">
 <h3>Análisis Comercial</h3>
 <div class="kpi">Tiendas Tricot: <b id="totalTricot">0</b></div>
@@ -58,13 +52,11 @@ background:#091a36;color:#fff;border:none
 <div class="kpi">Sin cobertura: <b id="soportesLejanos">0</b></div>
 </div>
 
-<!-- CARGA ARCHIVO -->
 <div class="panel">
 <h3>Cargar datos</h3>
 <input type="file" id="fileInput" accept=".json">
 </div>
 
-<!-- FILTROS -->
 <div class="panel">
 <h3>Filtros</h3>
 <input id="search" placeholder="Buscar soporte">
@@ -73,7 +65,6 @@ background:#091a36;color:#fff;border:none
 <button id="reset">Reset</button>
 </div>
 
-<!-- CAPAS -->
 <div class="panel">
 <h3>Capas</h3>
 <div class="chips">
@@ -85,7 +76,6 @@ background:#091a36;color:#fff;border:none
 </div>
 </div>
 
-<!-- RANKING -->
 <div class="panel">
 <h3>Top zonas</h3>
 <div id="ranking"></div>
@@ -104,16 +94,13 @@ background:#091a36;color:#fff;border:none
 
 <script>
 
-// MAPA
 const map=L.map('map').setView([-33.45,-70.66],11);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-// PANES
 map.createPane('hex'); map.getPane('hex').style.zIndex=400;
 map.createPane('points'); map.getPane('points').style.zIndex=650;
 map.createPane('tricot'); map.getPane('tricot').style.zIndex=700;
 
-// DATA
 let soportes=[],filtrados=[],tricot=[];
 let h6,h8;
 let capaPts=L.markerClusterGroup();
@@ -122,20 +109,9 @@ let capaH6,capaH8,capaComunas;
 
 const layersState={soportes:true,tricot:true,h6:true,h8:false,comunas:true};
 
-// ICONOS MEJORADOS
-const iconSoporte=L.divIcon({
-html:"📍",
-className:"",
-iconSize:[20,20]
-});
+const iconSoporte=L.divIcon({html:"📍",iconSize:[20,20]});
+const iconTricot=L.divIcon({html:"<div style='font-size:24px'>🏬</div>",iconSize:[26,26]});
 
-const iconTricot=L.divIcon({
-html:"<div style='font-size:22px'>🏬</div>",
-className:"",
-iconSize:[25,25]
-});
-
-// SCORE
 function score(s){
 if(s>=20)return 100;
 if(s>=10)return 60;
@@ -143,10 +119,16 @@ if(s>=5)return 30;
 return 10;
 }
 
-// CARGA DATOS
-fetch('data/soportes_enriquecidos.json')
-.then(r=>r.json())
-.then(d=>{
+// 🔥 ZOOM LOGIC
+function getZoomMode(){
+const z=map.getZoom();
+if(z<=11) return "h6";
+if(z<=14) return "h8";
+return "points";
+}
+
+// DATA
+fetch('data/soportes_enriquecidos.json').then(r=>r.json()).then(d=>{
 soportes=d.map((s,i)=>({
 ...s,
 nombre:s.nombre||s.NOMBRE||s.titulo||`Soporte ${i+1}`
@@ -164,7 +146,6 @@ totalTricot.innerText=tricot.length;
 fetch('data/h6.geojson').then(r=>r.json()).then(d=>h6=d);
 fetch('data/h8.geojson').then(r=>r.json()).then(d=>h8=d);
 
-// COMUNAS
 fetch('data/comunas.geojson').then(r=>r.json()).then(d=>{
 capaComunas=L.geoJSON(d,{
 style:{color:'#111',weight:1},
@@ -182,7 +163,6 @@ if(layersState.comunas) capaComunas.addTo(map);
 fileInput.addEventListener('change',function(e){
 const file=e.target.files[0];
 const reader=new FileReader();
-
 reader.onload=function(ev){
 const data=JSON.parse(ev.target.result);
 soportes=data;
@@ -190,7 +170,6 @@ filtrados=data;
 init();
 render();
 };
-
 reader.readAsText(file);
 });
 
@@ -221,6 +200,7 @@ chip.classList.toggle('active',layersState[k]);
 render();
 };
 });
+
 }
 
 // FILTRO
@@ -245,9 +225,11 @@ map.removeLayer(capaPts);
 capaPts=L.markerClusterGroup();
 
 let cercanos=0;
+const mode=getZoomMode();
 
-// SOPORTES
-if(layersState.soportes){
+// 🔴 SOPORTES SOLO EN ZOOM ALTO
+if(mode==="points" && layersState.soportes){
+
 filtrados.forEach(p=>{
 if(p.tricot_cercanos>0) cercanos++;
 
@@ -266,19 +248,17 @@ capaPts.addLayer(m);
 map.addLayer(capaPts);
 }
 
-// TRICOT
+// 🟢 TRICOT
 if(layersState.tricot){
 capaTricot.clearLayers();
 
 tricot.forEach(t=>{
 const m=L.marker([t.lat,t.lng],{icon:iconTricot});
-m.bindPopup(`<b>TIENDA TRICOT</b><br>${t.comuna}`);
+m.bindPopup(`<b>TRICOT</b><br>${t.comuna}`);
 capaTricot.addLayer(m);
 });
 
 map.addLayer(capaTricot);
-}else{
-map.removeLayer(capaTricot);
 }
 
 // COMUNAS
@@ -297,13 +277,15 @@ if(capaH6) map.removeLayer(capaH6);
 if(capaH8) map.removeLayer(capaH8);
 
 let feats=[];
+const mode=getZoomMode();
 
-if(layersState.h6 && h6){
+// 🔵 H6
+if(mode==="h6" && layersState.h6 && h6){
 feats=h6.features;
 
 capaH6=L.geoJSON(h6,{
 pane:'hex',
-style:f=>({color:'#2563eb',fillOpacity:0.3}),
+style:f=>({color:'#2563eb',fillOpacity:0.35}),
 onEachFeature:(f,l)=>{
 const s=score(f.properties.soportes||0);
 l.bindPopup(`H6<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
@@ -311,12 +293,13 @@ l.bindPopup(`H6<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
 }).addTo(map);
 }
 
-if(layersState.h8 && h8){
+// 🟣 H8
+if(mode==="h8" && layersState.h8 && h8){
 feats=h8.features;
 
 capaH8=L.geoJSON(h8,{
 pane:'hex',
-style:f=>({color:'#9333ea',fillOpacity:0.25}),
+style:f=>({color:'#9333ea',fillOpacity:0.30}),
 onEachFeature:(f,l)=>{
 const s=score(f.properties.soportes||0);
 l.bindPopup(`H8<br>Soportes:${f.properties.soportes}<br>Score:${s}`);
@@ -351,7 +334,7 @@ totalComunas.innerText=new Set(filtrados.map(s=>s.comuna)).size;
 
 }
 
-map.on('zoomend',()=>render());
+map.on('zoomend',render);
 
 </script>
 
